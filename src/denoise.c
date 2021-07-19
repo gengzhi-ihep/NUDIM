@@ -150,6 +150,104 @@ double*** total_variation_discrete(double*** img, float lam, int niter, int nx, 
 
 }
 
+double*** total_variation_discrete_height(double*** img, float lam, int niter, int nx, int ny, int nz, int nheight, int ncenter){
+
+	double ***denoised, ***grad;
+	double eps = 1e-8, dA;
+	double tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8, tmp9, tmp10, tmp11, tmp12;
+	int kp, km, jp, jm, ip, im;
+	int i, j, k;
+
+	denoised = malloc_image(nx, ny, nz);
+	grad = malloc_image(nx, ny, nz);
+
+	for(i=0; i<nx; i++){
+		for(j=0; j<ny; j++)
+			memmove(denoised[i][j],img[i][j],sizeof(double)*nz);
+	}
+
+	while(niter--){
+
+	tmp0 = 0;
+
+	for(k=0; k<nz; k++){
+
+		kp = (k==nz-1) ? nz-1 : k+1;
+		km = (k == 0) ? 0 : k-1;
+
+		for(j=0; j<ny; j++){
+
+                        if(j<(2*ncenter-nheight)/2 || j>(2*ncenter+nheight)/2)continue;
+
+			jp = (j==ny-1)? ny-1: j+1;
+			jm = (j==0) ? 0 : j-1;
+
+			for(i=0; i<nx; i++){
+
+				ip = (i==nx-1)? nx-1: i+1;
+				im = (i==0) ? 0 : i-1;
+
+				tmp1 = denoised[i][j][k] - denoised[im][j][k];
+				tmp2 = denoised[i][j][k] - denoised[i][jm][k];
+				tmp3 = denoised[i][j][k] - denoised[i][j][km];
+				tmp4 = denoised[ip][j][k] - denoised[i][j][k];
+				tmp5 = denoised[ip][j][k] - denoised[ip][jm][k];
+				tmp6 = denoised[ip][j][k] - denoised[ip][j][km];
+				tmp7 = denoised[i][jp][k] - denoised[im][jp][k];
+				tmp8 = denoised[i][jp][k] - denoised[i][j][k];
+				tmp9 = denoised[i][jp][k] - denoised[i][jp][km];
+				tmp10 = denoised[i][j][kp] - denoised[im][j][kp];
+				tmp11 = denoised[i][j][kp] - denoised[i][jm][kp];
+				tmp12 = denoised[i][j][kp] - denoised[i][j][k];
+
+				//gradient with respect to each pixel
+				grad[i][j][k] = (tmp1+tmp2+tmp3)/sqrt(eps+pow(tmp1,2)+pow(tmp2,2)+pow(tmp3,2))-
+					            tmp4/sqrt(eps+pow(tmp4,2)+pow(tmp5,2)+pow(tmp6,2))-
+								tmp8/sqrt(eps+pow(tmp7,2)+pow(tmp8,2)+pow(tmp9,2))-
+								tmp12/sqrt(eps+pow(tmp10,2)+pow(tmp11,2)+pow(tmp12,2));
+				tmp0 += pow(grad[i][j][k],2);
+			}
+		}
+	}
+
+	//scale gradient for each pixel
+	dA = 0;
+        tmp1 = sqrt(tmp0);
+	for(k=0; k<nz; k++){
+	    for(j=0; j<ny; j++){
+
+                if(j<(2*ncenter-nheight)/2 || j>(2*ncenter+nheight)/2)continue;
+
+	        for(i=0; i<nx; i++){
+		    grad[i][j][k] /= tmp1;
+		    if(denoised[i][j][k] < 0) dA += pow(denoised[i][j][k],2);
+	        }
+            }
+        }
+
+	//update image using gradient descent methods
+	tmp1 = sqrt(dA);
+	for(k=0; k<nz; k++){
+	    for(j=0; j<ny; j++){
+
+                if(j<(2*ncenter-nheight)/2 || j>(2*ncenter+nheight)/2)continue;
+
+	        for(i=0; i<nx; i++){
+		    denoised[i][j][k] -= lam*tmp1*grad[i][j][k];
+//		    denoised[i][j][k] -= lam*grad[i][j][k];
+	        }
+            }
+        }
+
+
+	}
+
+	free_image(grad, nx, ny);
+
+	return denoised;
+
+}
+
 double*** aniso_diffusion(double*** img, float lambda, float kappa, int niter,
 						 int nx, int ny, int nz){
 

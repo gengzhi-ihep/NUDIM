@@ -33,7 +33,8 @@ static void show_help(const char *s){
 		   "    --method=<DIFFUSION/TV>.  Use anisotropic diffusion or total variation to denoise 3D density.\n"
 		   "    --nhio=<nhio>.            Number of HIO iterations.\n"
 		   "    --ner=<ner>.              Number of ER iterations.\n"
-                   "    --height.                 Sample height for constraint.\n"
+                   "    --height=<nheight>.       Sample height for constraint (in pixel).\n"
+                   "    --center=<ncenter>.       Sample center for constraint (in pixel).\n"
 		   "    --random.                 Padding unknown projections with randoms or zeros.\n"
 		   "    --print.                  Print out R factor with each cycle of iteration.\n"
 		   "\n"
@@ -60,6 +61,7 @@ int main(int argc, char *argv[]){
 	int nx = -1;
 	int nz = -1;
         int nheight = -1;
+        int ncenter = -1;
 	int np = -1;
 	int nhio = -1;
 	int ner = -1;
@@ -103,7 +105,8 @@ int main(int argc, char *argv[]){
 		{"print",      0,   NULL,           12},
 		{"padangle",   1,   NULL,           13},
 		{"height",     1,   NULL,           14},
-                {"weight",     0,   NULL,           15},
+		{"center",     1,   NULL,           15},
+                {"weight",     0,   NULL,           16},
 
 		{0, 0, NULL, 0}
 	};
@@ -218,7 +221,16 @@ int main(int argc, char *argv[]){
 				 }
 				 break;
 
-                         case 15:
+			 case 15:
+                                 config_height = 1;
+				 ncenter = strtol(optarg, &rval, 10);
+				 if( *rval != '\0'){
+					 fprintf(stderr,"Invalid sample center!\n");
+					 return 1;
+				 }
+				 break;
+
+                         case 16:
                                  config_weight = 1;
                                  break;
 
@@ -275,8 +287,8 @@ int main(int argc, char *argv[]){
 		return 1;
 	}
 
-       if( config_height && nheight <= 0){
-                fprintf(stderr, "You must provide valid sample height --height.\n");
+       if( config_height && (nheight <= 0 || ncenter <=0) ){
+                fprintf(stderr, "You must provide valid both sample height and center with --height and --center.\n");
                 return 1;
         }
 
@@ -614,11 +626,15 @@ int main(int argc, char *argv[]){
 			if(denoise_m == DIFFUSION){
 				denoised = aniso_diffusion_2d(img, 0.25, 0.005, 80, nz, np, np);
 			}else{
-				denoised = total_variation_discrete(img, 0.2, 40, nz, np, np);
+                                if(config_height){
+				    denoised = total_variation_discrete_height(img, 0.2, 40, nz, np, np, nheight, ncenter);
+                                }else{
+				    denoised = total_variation_discrete(img, 0.2, 40, nz, np, np);
+                                }
 			}
 
 			//show initial gradient map for visualization of denoising effect
-			if(nn == 0){
+			if(nn == 100){
 
 				FILE *fp;
 				grad_mag = show_grad_mag(img, nz, np, np);
@@ -661,7 +677,7 @@ int main(int argc, char *argv[]){
 
 			if(config_height){
 
-                                if(yi>=(np-nheight)/2 && yi<=(np+nheight)/2){
+                                if(yi>=(2*ncenter-nheight)/2 && yi<=(2*ncenter+nheight)/2){
 					if(img[j][yi][xi] < 0)
 						img[j][yi][xi] = (nn<nhio) ? img_last[j][yi][xi]-0.9*img[j][yi][xi] : 0;
 				}else{

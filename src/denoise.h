@@ -13,6 +13,9 @@ double ***total_variation(double*** img, float lam, float dt, int niter,
 double ***total_variation_discrete(double*** img, float lam, int niter,
 						           int nx, int ny, int nz);
 
+double ***total_variation_discrete_height(double*** img, float lam, int niter,
+						           int nx, int ny, int nz, int nheight, int ncenter);
+
 double ***aniso_diffusion(double*** img, float lambda,float kappa, int niter,
 						 int nx, int ny, int nz);
 
