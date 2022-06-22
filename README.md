@@ -11,17 +11,19 @@ Description:
 * Totol variation based image denoising is further incorporated into dual-space constraint to suppress noise.  
 
 Please cite the following publication if you use ***NUDIM*** in your work: 😊
-> Geng,Z.,She,Z.,Zhou,Q.,Dong,Z.,Zhan,F.,Zhang,H.,Xu,J.H.,Gao,Z.Q. & Dong,Y.H. NUDIM:A non-uniform fast Fourier transform based dual-space constraint iterative reconstruction method in biological electron tomography. Journal of Structural Biology
+> Geng,Z.,She,Z.,Zhou,Q.,Dong,Z.,Zhan,F.,Zhang,H.,Xu,J.H.,Gao,Z.Q. & Dong,Y.H. NUDIM:A non-uniform fast Fourier transform based dual-space constraint iterative reconstruction method in biological electron tomography. Journal of Structural Biology 213(2021) 107770. [https://doi.org/10.1016/j.jsb.2021.107770](https://doi.org/10.1016/j.jsb.2021.107770)
 
 Requirements:
 ------------------
+Installation and Usage of NUDIM are tested on a personal PC with Centos-7.0 operating system.
+
 Before compiling source codes, the following binary libraries are required:
 
 * gcc
 * openmpi
-* gsl
-* nfft
-* fftw
+* [gsl](http://www.gnu.org/software/gsl/)
+* [nfft](https://www-user.tu-chemnitz.de/~potts/nfft/index.php)
+* [fftw](http://www.fftw.org/)
 
 Installation:
 ------------------
