@@ -1,4 +1,4 @@
 #!/bin/bash
 ./convert.sh
-./reconstruction-parallel.sh
 #./reconstruction.sh
+./reconstruction-parallel.sh
