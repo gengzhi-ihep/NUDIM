@@ -676,10 +676,10 @@ int main(int argc, char *argv[]){
 
 		MPI_Barrier(MPI_COMM_WORLD);
 
-		if(rank){
+		diff1 = 0;
+		diff2 = 0;
 
-			diff1 = 0;
-			diff2 = 0;
+		if(rank){
 
 			//Slice by Slice
 			for(j=0; j<nz/(size-1); j++){
